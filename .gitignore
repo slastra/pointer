@@ -5,6 +5,7 @@ __pycache__/
 *.so
 .Python
 venv/
+.venv/
 env/
 ENV/
 build/
@@ -39,3 +40,4 @@ Thumbs.db
 *.pkl
 *.h5
 *.weights
+calibration.json

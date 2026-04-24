@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Install Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+      - name: Sync deps
+        run: uv sync --python ${{ matrix.python-version }}
+      - name: Lint (ruff)
+        run: uv run ruff check finger_tracker tests
+      - name: Typecheck (mypy)
+        run: uv run mypy finger_tracker
+      - name: Test (pytest)
+        run: uv run pytest

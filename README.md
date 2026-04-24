@@ -23,16 +23,19 @@ A computer vision-based mouse controller that uses hand tracking for cursor move
 ```bash
 git clone <repository-url>
 cd pointer
-pip install -r requirements.txt
+uv sync
 ```
+
+Requires [uv](https://github.com/astral-sh/uv). Pinned to Python 3.11 / 3.12.
 
 ## Usage
 
-The application can be launched using any of the following methods:
+The application can be launched with:
 
 ```bash
-python finger_tracker.py
-python -m finger_tracker
+uv run pointer
+# or
+uv run python -m finger_tracker
 ```
 
 For programmatic usage:
@@ -47,7 +50,10 @@ tracker.run()
 
 ### Gestures
 - Move index finger to control cursor
-- Touch thumb and index finger together to click or drag
+- Thumb ↔ index finger PIP (first knuckle) — left click / drag
+- Thumb ↔ middle finger PIP — right click
+- Closed fist, move vertically — scroll
+- Open palm held for ~1 second — toggle pause (cursor + clicks frozen)
 
 ### Keyboard Commands
 - `q` - Exit application
@@ -55,7 +61,8 @@ tracker.run()
 - `c` - Enter calibration mode
 - `d` - Delete saved calibration
 - `s` - Toggle smoothing on/off
-- `[` / `]` - Adjust smoothing intensity
+- `f` - Cycle smoothing filter (one_euro → legacy → kalman)
+- `[` / `]` - Adjust smoothing parameter (filter-dependent)
 - `+` / `-` - Adjust click sensitivity threshold
 - `r` - Reset mouse state
 
@@ -91,14 +98,19 @@ pointer/
 ├── finger_tracker/
 │   ├── __init__.py          # Package exports
 │   ├── __main__.py          # Module entry point
-│   ├── config.py            # Configuration dataclass
-│   ├── calibration.py       # Coordinate mapping and calibration
-│   ├── detection.py         # MediaPipe hand detection wrapper
-│   ├── mouse.py             # PyAutoGUI mouse control wrapper
-│   ├── smoothing.py         # Motion smoothing and prediction
-│   └── tracker.py           # Main application orchestrator
-├── finger_tracker.py        # Launcher script
-├── requirements.txt
+│   ├── config.py            # Immutable Config dataclass
+│   ├── state.py             # Per-frame FrameState dataclass
+│   ├── capture.py           # Sync + threaded camera capture
+│   ├── calibration.py       # Coordinate mapping + calibration
+│   ├── detection.py         # MediaPipe hand detection + downscale
+│   ├── gestures.py          # Gesture classifier + debouncer
+│   ├── mouse.py             # PyAutoGUI mouse control + hysteresis/debounce
+│   ├── smoothing.py         # Smoother facade with pluggable strategies
+│   ├── filters/             # One-Euro, Kalman, legacy MA+EMA strategies
+│   └── tracker.py           # Orchestrator (update/render split)
+├── tests/                   # pytest suite
+├── pyproject.toml
+├── uv.lock
 └── README.md
 ```
 

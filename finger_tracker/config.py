@@ -1,37 +1,40 @@
-"""Configuration settings for the finger tracker."""
+"""Immutable configuration for the finger tracker."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Config:
-    """Configuration settings for finger tracking."""
+    """Init-time configuration. Runtime-mutable values live on controllers."""
 
-    # Hand detection settings
+    # Hand detection
     max_num_hands: int = 1
     min_detection_confidence: float = 0.5
-    min_tracking_confidence: float = 0.3
+    # Low value keeps tracking through partial occlusions — e.g. when the
+    # user's wrist dips below the camera frame while pointing low.
+    min_tracking_confidence: float = 0.1
 
-    # Click detection settings
-    click_distance_threshold: int = 10
-    click_cooldown: float = 0.3
-    click_mode: str = 'hold'  # 'click' or 'hold'
-
-    # Smoothing settings
-    smoothing_enabled: bool = True
-    smoothing_factor: float = 0.7  # 0-1, higher = less smoothing
-    history_size: int = 3
-
-    # Motion prediction settings
+    # Motion prediction (short-horizon only; used when hand is briefly lost)
     prediction_enabled: bool = True
     max_prediction_distance: int = 100
     max_frames_to_predict: int = 20
     velocity_decay: float = 0.9
     velocity_smoothing: float = 0.7
 
-    # Calibration settings
+    # Calibration
     calibration_file: str = "calibration.json"
+    # Shift the active calibration rectangle upward (in pixels) so the user
+    # doesn't have to drop their hand off the bottom of the frame to reach
+    # the rectangle's lower edge. Applied to both mapping and rendering.
+    bounds_y_offset_px: int = 120
 
-    # PyAutoGUI safety
-    failsafe_enabled: bool = False
-    mouse_pause: float = 0
+    # Capture resolution — frames we pull from the webcam. MediaPipe still
+    # downscales to detection_{width,height} for detection regardless.
+    capture_width: int = 1280
+    capture_height: int = 720
+
+    # Performance
+    detection_width: int = 640  # downscale target for MediaPipe (0 = no downscale)
+    detection_height: int = 360
